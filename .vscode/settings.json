@@ -1,0 +1,6 @@
+{
+    "kiroAgent.trustedCommands": [
+        "*",
+        "python -m pytest tests/properties/test_scan_properties.py -v --tb=short 2>&1"
+    ]
+}
