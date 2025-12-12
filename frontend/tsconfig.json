@@ -28,6 +28,8 @@
       "utils/*": ["./src/utils/*"],
       "types/*": ["./src/types/*"],
       "variables/*": ["./src/variables/*"],
+      "styles/*": ["./src/styles/*"],
+      "contexts/*": ["./src/contexts/*"],
       "routes": ["./src/routes.tsx"]
     },
     "incremental": true,

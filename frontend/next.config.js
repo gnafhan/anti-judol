@@ -27,6 +27,8 @@ const nextConfig = {
       'utils': path.resolve(__dirname, 'src/utils'),
       'types': path.resolve(__dirname, 'src/types'),
       'variables': path.resolve(__dirname, 'src/variables'),
+      'styles': path.resolve(__dirname, 'src/styles'),
+      'contexts': path.resolve(__dirname, 'src/contexts'),
     };
     return config;
   },
@@ -40,6 +42,8 @@ const nextConfig = {
       'utils': './src/utils',
       'types': './src/types',
       'variables': './src/variables',
+      'styles': './src/styles',
+      'contexts': './src/contexts',
     },
   },
 };
