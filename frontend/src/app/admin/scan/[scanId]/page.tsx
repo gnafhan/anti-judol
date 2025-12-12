@@ -36,12 +36,10 @@ import {
 import { api, getAccessToken } from 'lib/api';
 import { useKeyboardNavigation, useValidationShortcuts, useValidation } from 'hooks';
 import type { ScanDetailResponse, ScanResultResponse, ScanStatus, BatchAction } from 'lib/types';
+import { isLowConfidenceResult } from 'utils/confidence';
 
 type FilterType = 'all' | 'gambling' | 'clean' | 'low-confidence';
 type SortType = 'confidence-desc' | 'confidence-asc' | 'author';
-
-/** Low confidence threshold (70%) */
-const LOW_CONFIDENCE_THRESHOLD = 0.7;
 
 /**
  * Loading skeleton for scan details
@@ -82,15 +80,6 @@ const ScanDetailSkeleton = () => (
  * Requirements: 7.4 - Display all detected comments with confidence scores
  * Requirements: 8.2 - Keyboard navigation support with focus management
  */
-/**
- * Check if a result has low confidence
- * Requirements: 3.1 - Highlight comments with confidence below 70%
- * **Feature: auto-ml-retraining, Property 2: Low Confidence Highlighting**
- */
-export function isLowConfidenceResult(confidence: number): boolean {
-  return confidence < LOW_CONFIDENCE_THRESHOLD;
-}
-
 const CommentResultCard = ({ 
   result,
   showConfidenceBar = true,
