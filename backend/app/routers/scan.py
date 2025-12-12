@@ -36,7 +36,7 @@ from app.workers.tasks import scan_video_comments
 router = APIRouter(prefix="/api/scan", tags=["scan"])
 
 
-@router.post("/", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
 async def create_scan(
     request: ScanCreate,
     db: AsyncSession = Depends(get_db),
