@@ -70,6 +70,7 @@ services:
       - traefik.http.routers.anti-judol-backend.tls=true
       - traefik.http.routers.anti-judol-backend.tls.certresolver=mytlschallenge
       - traefik.http.services.anti-judol-backend.loadbalancer.server.port=8000
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik_network}
     networks:
       - internal
       - traefik
