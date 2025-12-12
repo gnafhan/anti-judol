@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install dependencies (use npm install if no lock file, npm ci if exists)
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Install dependencies with legacy-peer-deps to handle React 19 compatibility
+RUN npm install --legacy-peer-deps
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
