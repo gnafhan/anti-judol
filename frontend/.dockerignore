@@ -42,3 +42,5 @@ docs
 *.md
 !package.json
 !package-lock.json
+!tsconfig.json
+!next.config.js
