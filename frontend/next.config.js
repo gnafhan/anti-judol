@@ -20,6 +20,7 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
       'lib': path.resolve(__dirname, 'src/lib'),
       'components': path.resolve(__dirname, 'src/components'),
       'hooks': path.resolve(__dirname, 'src/hooks'),
@@ -28,6 +29,20 @@ const nextConfig = {
       'variables': path.resolve(__dirname, 'src/variables'),
     };
     return config;
+  },
+  // Turbopack configuration (for dev mode)
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        '@': './src',
+        'lib': './src/lib',
+        'components': './src/components',
+        'hooks': './src/hooks',
+        'utils': './src/utils',
+        'types': './src/types',
+        'variables': './src/variables',
+      },
+    },
   },
 };
 
