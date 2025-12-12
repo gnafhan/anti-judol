@@ -21,6 +21,13 @@
     "downlevelIteration": true,
     "baseUrl": "src",
     "paths": {
+      "lib/*": ["lib/*"],
+      "components/*": ["components/*"],
+      "hooks/*": ["hooks/*"],
+      "contexts/*": ["contexts/*"],
+      "utils/*": ["utils/*"],
+      "types/*": ["types/*"],
+      "variables/*": ["variables/*"],
       "@/public/*": ["./src/assets/public/*"]
     },
     "incremental": true,
