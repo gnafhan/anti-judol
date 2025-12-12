@@ -20,6 +20,16 @@
     "strictNullChecks": false,
     "downlevelIteration": true,
     "baseUrl": "src",
+    "paths": {
+      "lib/*": ["lib/*"],
+      "components/*": ["components/*"],
+      "hooks/*": ["hooks/*"],
+      "utils/*": ["utils/*"],
+      "types/*": ["types/*"],
+      "variables/*": ["variables/*"],
+      "styles/*": ["styles/*"],
+      "contexts/*": ["contexts/*"]
+    },
     "incremental": true,
     "plugins": [
       {
