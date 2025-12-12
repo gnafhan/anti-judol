@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "typeRoots": ["node_modules/@types", "src/types"],
-    "target": "es5",
+    "target": "es2016",
     "lib": ["dom", "dom.iterable", "esnext", "es2015.iterable"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -21,14 +21,7 @@
     "downlevelIteration": true,
     "baseUrl": "src",
     "paths": {
-      "lib/*": ["lib/*"],
-      "components/*": ["components/*"],
-      "hooks/*": ["hooks/*"],
-      "utils/*": ["utils/*"],
-      "types/*": ["types/*"],
-      "variables/*": ["variables/*"],
-      "styles/*": ["styles/*"],
-      "contexts/*": ["contexts/*"]
+      "@/public/*": ["./src/assets/public/*"]
     },
     "incremental": true,
     "plugins": [

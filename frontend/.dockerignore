@@ -43,4 +43,7 @@ docs
 !package.json
 !package-lock.json
 !tsconfig.json
+!jsconfig.json
 !next.config.js
+!postcss.config.js
+!tailwind.config.js
