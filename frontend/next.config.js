@@ -31,17 +31,15 @@ const nextConfig = {
     return config;
   },
   // Turbopack configuration (for dev mode)
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        '@': './src',
-        'lib': './src/lib',
-        'components': './src/components',
-        'hooks': './src/hooks',
-        'utils': './src/utils',
-        'types': './src/types',
-        'variables': './src/variables',
-      },
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+      'lib': './src/lib',
+      'components': './src/components',
+      'hooks': './src/hooks',
+      'utils': './src/utils',
+      'types': './src/types',
+      'variables': './src/variables',
     },
   },
 };
