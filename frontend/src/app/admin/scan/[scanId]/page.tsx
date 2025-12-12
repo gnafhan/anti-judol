@@ -200,7 +200,7 @@ const CommentResultCard = ({
             )}
           </div>
           
-          <p className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap break-words mb-3">
+          <p className="text-black dark:text-gray-300 text-sm whitespace-pre-wrap break-words mb-3">
             {result.comment_text}
           </p>
 
@@ -766,7 +766,7 @@ const ScanResultsPage = () => {
                   className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-1.5 ${
                     batchMode 
                       ? 'bg-brand-500 text-white' 
-                      : 'bg-gray-100 dark:bg-navy-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-navy-600'
+                      : 'bg-gray-100 dark:bg-navy-700 text-black dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-navy-600'
                   }`}
                 >
                   <MdCheckCircle className="h-4 w-4" />

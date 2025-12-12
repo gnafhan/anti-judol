@@ -804,7 +804,8 @@ const ModelManagementPage = () => {
           colors: '#A3AED0',
           fontSize: '12px',
         },
-        formatter: (val: number) => `${val.toFixed(0)}%`,
+        formatter: (val: number | null | undefined) => 
+          val != null ? `${val.toFixed(0)}%` : '',
       },
     },
     legend: {
@@ -815,7 +816,8 @@ const ModelManagementPage = () => {
     tooltip: {
       theme: 'dark',
       y: {
-        formatter: (val: number) => `${val.toFixed(2)}%`,
+        formatter: (val: number | null | undefined) => 
+          val != null ? `${val.toFixed(2)}%` : 'N/A',
       },
     },
     grid: {

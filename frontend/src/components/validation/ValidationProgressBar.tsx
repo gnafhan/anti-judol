@@ -184,59 +184,7 @@ const ValidationProgressBar = ({
       </div>
 
       {/* Retraining Threshold Progress */}
-      <div className={`p-3 rounded-xl ${
-        showThresholdHighlight 
-          ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' 
-          : 'bg-gray-50 dark:bg-navy-700'
-      }`}>
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5">
-            <MdAutorenew className={`h-4 w-4 ${
-              showThresholdHighlight 
-                ? 'text-amber-500 animate-spin' 
-                : 'text-gray-400'
-            }`} />
-            <span className={`text-xs ${
-              showThresholdHighlight 
-                ? 'text-amber-600 dark:text-amber-400 font-medium' 
-                : 'text-gray-500 dark:text-gray-400'
-            }`}>
-              Model Retraining Progress
-            </span>
-          </div>
-          <span className={`text-xs font-medium ${
-            showThresholdHighlight 
-              ? 'text-amber-600 dark:text-amber-400' 
-              : 'text-navy-700 dark:text-white'
-          }`}>
-            {thresholdProgress}% ({Math.round(thresholdProgress * threshold / 100)}/{threshold})
-          </span>
-        </div>
-        
-        <div className="h-2 bg-white dark:bg-navy-600 rounded-full overflow-hidden">
-          <div 
-            className={`h-full rounded-full transition-all duration-300 ${
-              thresholdProgress >= 100 
-                ? 'bg-green-500' 
-                : showThresholdHighlight 
-                  ? 'bg-amber-500' 
-                  : 'bg-gray-400'
-            }`}
-            style={{ width: `${Math.min(thresholdProgress, 100)}%` }}
-          />
-        </div>
-
-        {/* Motivational Message */}
-        {motivationalMessage && (
-          <p className={`mt-2 text-xs ${
-            thresholdProgress >= 100 
-              ? 'text-green-600 dark:text-green-400' 
-              : 'text-amber-600 dark:text-amber-400'
-          }`}>
-            {motivationalMessage}
-          </p>
-        )}
-      </div>
+      
     </div>
   );
 };

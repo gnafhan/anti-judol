@@ -335,20 +335,37 @@ async def rollback_model(
     Rollback to a previous model version.
     
     Deactivates the current model and activates the specified version.
+    Reloads the prediction service with the rolled-back model.
     Admin-only endpoint.
     
     Requirements: 5.3
     """
+    from pathlib import Path
+    from app.services.prediction_service import PredictionService
+    
     service = RetrainingService(db)
     
     try:
         model_version = await service.rollback_model(version_id)
         
-        return RollbackResponse(
-            success=True,
-            message=f"Rolled back to model version: {model_version.version}",
-            model_version=_model_to_response(model_version),
-        )
+        # Reload prediction service with the rolled-back model
+        model_path = Path(model_version.file_path)
+        reload_success = PredictionService.reload_model(model_path)
+        
+        if reload_success:
+            return RollbackResponse(
+                success=True,
+                message=f"Rolled back to model version: {model_version.version}",
+                model_version=_model_to_response(model_version),
+            )
+        else:
+            # Rollback succeeded but model reload failed - still return success
+            # as the database state is correct
+            return RollbackResponse(
+                success=True,
+                message=f"Rolled back to model version: {model_version.version}. Note: Model hot-swap pending, may require service restart.",
+                model_version=_model_to_response(model_version),
+            )
         
     except RetrainingError as e:
         raise HTTPException(

@@ -459,6 +459,7 @@ class RetrainingService:
         Rollback to a previous model version.
         
         Deactivates the current model and activates the specified version.
+        The model will be loaded from the file_path stored in the ModelVersion record.
         
         Args:
             version_id: UUID of the model version to rollback to
@@ -502,11 +503,7 @@ class RetrainingService:
         await self.db.commit()
         await self.db.refresh(target_version)
         
-        # Copy to active model path
-        try:
-            shutil.copy2(model_path, self._active_model_path)
-        except Exception as e:
-            raise ModelDeploymentError(f"Failed to copy model file: {e}")
+        # Note: No file copy needed - model is loaded from file_path in the active ModelVersion record
         
         return target_version
 

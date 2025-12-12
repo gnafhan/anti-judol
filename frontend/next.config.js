@@ -15,10 +15,14 @@ const nextConfig = {
       'images.unsplash.com',
       'i.ibb.co',
       'scontent.fotp8-1.fna.fbcdn.net',
+      'yt3.ggpht.com',
+      'i.ytimg.com',
     ],
     // Make ENV
     unoptimized: true,
   },
+  // Enable standalone output for Docker
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
