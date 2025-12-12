@@ -36,9 +36,7 @@ import type {
   RetrainingPreviewResponse,
 } from 'lib/types';
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? (window as unknown as { ENV?: { NEXT_PUBLIC_API_URL?: string } }).ENV?.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  : 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'access_token';
