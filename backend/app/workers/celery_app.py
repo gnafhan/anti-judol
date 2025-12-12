@@ -23,6 +23,7 @@ celery_app = Celery(
 default_exchange = Exchange("default", type="direct")
 predictions_exchange = Exchange("predictions", type="direct")
 youtube_exchange = Exchange("youtube", type="direct")
+retraining_exchange = Exchange("retraining", type="direct")
 
 # Configure Celery
 celery_app.conf.update(
@@ -40,6 +41,7 @@ celery_app.conf.update(
         Queue("default", default_exchange, routing_key="default"),
         Queue("predictions", predictions_exchange, routing_key="predictions"),
         Queue("youtube", youtube_exchange, routing_key="youtube"),
+        Queue("retraining", retraining_exchange, routing_key="retraining"),
     ),
     
     # Default queue
@@ -52,6 +54,7 @@ celery_app.conf.update(
         "app.workers.tasks.batch_predict": {"queue": "predictions"},
         "app.workers.tasks.scan_video_comments": {"queue": "youtube"},
         "app.workers.tasks.cleanup_old_results": {"queue": "default"},
+        "app.workers.tasks.retrain_model": {"queue": "retraining"},
     },
     
     # Rate limits (Requirements 12.1, 12.2)
@@ -83,8 +86,8 @@ celery_app.conf.update(
     worker_concurrency=4,  # Number of concurrent workers
     
     # Task execution settings
-    task_time_limit=600,  # 10 minutes hard limit
-    task_soft_time_limit=540,  # 9 minutes soft limit
+    task_time_limit=1800,  # 30 minutes hard limit (for retraining)
+    task_soft_time_limit=1740,  # 29 minutes soft limit
     
     # Task tracking
     task_track_started=True,

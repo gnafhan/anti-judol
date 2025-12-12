@@ -1,0 +1,1357 @@
+{
+  "info": {
+    "name": "Gambling Comment Detector API",
+    "description": "API collection for the Gambling Comment Detector application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scan_result_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "validation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "model_version_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response has healthy status', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('healthy');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response has app name', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.name).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Google Login Redirect",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/auth/google"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 302', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});",
+                  "pm.test('Response is valid (JSON or HTML redirect)', function () {",
+                  "    var contentType = pm.response.headers.get('Content-Type') || '';",
+                  "    pm.expect(contentType.includes('json') || contentType.includes('html')).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/auth/me",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has user data', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.id).to.exist;",
+                  "        pm.expect(jsonData.email).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/logout",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prediction",
+      "item": [
+        {
+          "name": "Single Prediction",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/predict/single?text=Check out this casino bonus!",
+              "host": ["{{base_url}}"],
+              "path": ["api", "predict", "single"],
+              "query": [
+                {
+                  "key": "text",
+                  "value": "Check out this casino bonus!"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 503', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has prediction fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.is_gambling).to.be.a('boolean');",
+                  "        pm.expect(jsonData.confidence).to.be.a('number');",
+                  "        pm.expect(jsonData.confidence).to.be.at.least(0);",
+                  "        pm.expect(jsonData.confidence).to.be.at.most(1);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Batch Prediction",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/predict/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"texts\": [\"Great video!\", \"Win big at online casino\", \"Thanks for sharing\"], \"async_mode\": false}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 503', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has predictions array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.predictions).to.be.an('array');",
+                  "        pm.expect(jsonData.predictions.length).to.eql(3);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scan",
+      "item": [
+        {
+          "name": "Create Scan",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/scan/",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"video_id\": \"dQw4w9WgXcQ\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 401]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Response has scan data', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.id).to.exist;",
+                  "        pm.expect(jsonData.status).to.eql('pending');",
+                  "        pm.collectionVariables.set('scan_id', jsonData.id);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Scan History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/scan/history?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "scan", "history"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has pagination', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.items).to.be.an('array');",
+                  "        pm.expect(jsonData.total).to.be.a('number');",
+                  "        pm.expect(jsonData.page).to.eql(1);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Scan Status",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/scan/{{scan_id}}/status",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has status field', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.status).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Scan Details",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/scan/{{scan_id}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, 404, or 405 (if no scan_id)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404, 405]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has scan details', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.id).to.exist;",
+                  "        pm.expect(jsonData.results).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Scan",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/scan/{{scan_id}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204, 401, 404, or 405 (if no scan_id)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 401, 404, 405]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "YouTube",
+      "item": [
+        {
+          "name": "Search Videos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/youtube/search?q=programming&max_results=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "search"],
+              "query": [
+                { "key": "q", "value": "programming" },
+                { "key": "max_results", "value": "5" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 429', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 429, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has items array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.items).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Video Details",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/youtube/videos/dQw4w9WgXcQ"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 404, or 429', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404, 429, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has video info', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.id).to.exist;",
+                  "        pm.expect(jsonData.title).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Video Comments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/youtube/videos/dQw4w9WgXcQ/comments?max_results=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "videos", "dQw4w9WgXcQ", "comments"],
+              "query": [
+                { "key": "max_results", "value": "10" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 404, or 429', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404, 429, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has items array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.items).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Videos (Auth Required)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/youtube/my-videos?max_results=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "my-videos"],
+              "query": [
+                { "key": "max_results", "value": "10" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has items array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.items).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validation",
+      "item": [
+        {
+          "name": "Submit Validation",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/validation/submit",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scan_result_id\": \"{{scan_result_id}}\", \"is_correct\": true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201, 400, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 404]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Response has validation data', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.id).to.exist;",
+                  "        pm.expect(jsonData.scan_result_id).to.exist;",
+                  "        pm.expect(jsonData.is_correction).to.be.a('boolean');",
+                  "        pm.collectionVariables.set('validation_id', jsonData.id);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Batch Validate",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/validation/batch",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"result_ids\": [\"{{scan_result_id}}\"], \"action\": \"confirm_all\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has batch result', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success_count).to.be.a('number');",
+                  "        pm.expect(jsonData.failed_count).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Validation Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/validation/stats",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has stats fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.total_validated).to.be.a('number');",
+                  "        pm.expect(jsonData.corrections_made).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Validation Progress",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/validation/progress",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has progress fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.total_validated).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Undo Validation",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/validation/{{validation_id}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204, 400, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 400, 401, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Validations for Scan",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/validation/scan/{{scan_id}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, 404, or 405 (if no scan_id)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404, 405]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response is an array of validations', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an('array');",
+                  "    });",
+                  "    pm.test('Each validation has required fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        if (jsonData.length > 0) {",
+                  "            var validation = jsonData[0];",
+                  "            pm.expect(validation).to.have.property('id');",
+                  "            pm.expect(validation).to.have.property('scan_result_id');",
+                  "            pm.expect(validation).to.have.property('is_correction');",
+                  "            pm.expect(validation).to.have.property('corrected_label');",
+                  "            pm.expect(validation).to.have.property('validated_at');",
+                  "            pm.expect(validation).to.have.property('can_undo');",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/stats",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has stats fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.total_scans).to.be.a('number');",
+                  "        pm.expect(jsonData.total_comments).to.be.a('number');",
+                  "        pm.expect(jsonData.detection_rate).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Chart Data",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/chart-data",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has chart data', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Export Scan CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/export/{{scan_id}}?format=csv",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "export", "{{scan_id}}"],
+              "query": [
+                { "key": "format", "value": "csv" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response is CSV', function () {",
+                  "        pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Export Scan JSON",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/export/{{scan_id}}?format=json",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "export", "{{scan_id}}"],
+              "query": [
+                { "key": "format", "value": "json" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response is JSON', function () {",
+                  "        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Model Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/model-metrics",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has model metrics fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('current_version');",
+                  "        pm.expect(jsonData).to.have.property('accuracy');",
+                  "        pm.expect(jsonData).to.have.property('precision');",
+                  "        pm.expect(jsonData).to.have.property('recall');",
+                  "        pm.expect(jsonData).to.have.property('f1_score');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Model Improvement",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/model-improvement",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has model improvement fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('has_improvement');",
+                  "        pm.expect(jsonData.has_improvement).to.be.a('boolean');",
+                  "        pm.expect(jsonData).to.have.property('previous_version');",
+                  "        pm.expect(jsonData).to.have.property('new_version');",
+                  "        pm.expect(jsonData).to.have.property('accuracy_change');",
+                  "        pm.expect(jsonData).to.have.property('improvement_percent');",
+                  "        pm.expect(jsonData).to.have.property('deployed_at');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Validation Contributions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/validation-contributions",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has validation contribution fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.total_validations).to.be.a('number');",
+                  "        pm.expect(jsonData.contributed_to_training).to.be.a('number');",
+                  "        pm.expect(jsonData.corrections_made).to.be.a('number');",
+                  "        pm.expect(jsonData.model_versions_contributed).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Scanned Videos",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/dashboard/scanned-videos",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has videos array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.videos).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Top Videos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/top-videos?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "top-videos"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has videos array', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.videos).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Model",
+      "item": [
+        {
+          "name": "Get Model Versions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/model/versions?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "model", "versions"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response is an array of model versions', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an('array');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current Model",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/model/current",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has model version fields or is null', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        if (jsonData !== null) {",
+                  "            pm.expect(jsonData).to.have.property('id');",
+                  "            pm.expect(jsonData).to.have.property('version');",
+                  "            pm.expect(jsonData).to.have.property('is_active');",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Model Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/model/metrics",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has model metrics fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('current_version');",
+                  "        pm.expect(jsonData).to.have.property('accuracy');",
+                  "        pm.expect(jsonData).to.have.property('precision');",
+                  "        pm.expect(jsonData).to.have.property('recall');",
+                  "        pm.expect(jsonData).to.have.property('f1');",
+                  "        pm.expect(jsonData).to.have.property('total_versions');",
+                  "        pm.expect(jsonData).to.have.property('pending_validations');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Metrics Trend",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/model/metrics/trend?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "model", "metrics", "trend"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has trend and improvement_summary', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('trend');",
+                  "        pm.expect(jsonData.trend).to.be.an('array');",
+                  "        pm.expect(jsonData).to.have.property('improvement_summary');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Training Progress",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/model/training/progress",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has training progress fields', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('is_training');",
+                  "        pm.expect(jsonData.is_training).to.be.a('boolean');",
+                  "        pm.expect(jsonData).to.have.property('progress_percent');",
+                  "        pm.expect(jsonData.progress_percent).to.be.a('number');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trigger Retraining",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/model/retrain",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 400, 401, 403, or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has async retraining result', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('success');",
+                  "        pm.expect(jsonData.success).to.be.a('boolean');",
+                  "        pm.expect(jsonData).to.have.property('message');",
+                  "        pm.expect(jsonData).to.have.property('task_id');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rollback Model",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/model/rollback/{{model_version_id}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200, 401, 403, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has rollback result', function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('success');",
+                  "        pm.expect(jsonData.success).to.be.a('boolean');",
+                  "        pm.expect(jsonData).to.have.property('message');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

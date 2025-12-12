@@ -24,6 +24,22 @@ from app.services.export_service import (
     ExportService,
 )
 
+from app.services.validation_service import (
+    ValidationService,
+    ValidationError,
+    ValidationNotFoundError,
+    ScanResultNotFoundError,
+    UndoWindowExpiredError,
+)
+
+from app.services.retraining_service import (
+    RetrainingService,
+    RetrainingError,
+    InsufficientDataError,
+    ModelDeploymentError,
+    ModelMetrics,
+)
+
 __all__ = [
     "AuthService",
     "TokenEncryptionError",
@@ -37,4 +53,14 @@ __all__ = [
     "YouTubeService",
     "YouTubeAPIError",
     "ExportService",
+    "ValidationService",
+    "ValidationError",
+    "ValidationNotFoundError",
+    "ScanResultNotFoundError",
+    "UndoWindowExpiredError",
+    "RetrainingService",
+    "RetrainingError",
+    "InsufficientDataError",
+    "ModelDeploymentError",
+    "ModelMetrics",
 ]

@@ -34,6 +34,9 @@ async_session_factory = async_sessionmaker(
     autoflush=False,
 )
 
+# Alias for Celery tasks
+async_session_maker = async_session_factory
+
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""

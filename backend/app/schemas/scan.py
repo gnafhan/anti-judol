@@ -12,6 +12,7 @@ class ScanCreate(BaseModel):
     """Schema for creating a new scan."""
     video_id: str
     video_url: str | None = None
+    is_own_video: bool = False
 
 
 class ScanResponse(BaseModel):

@@ -13,6 +13,8 @@ from pydantic import ValidationError
 
 from app.config import get_settings
 from app.database import init_db, close_db
+from app.metrics import setup_metrics
+from app.logging_config import setup_request_logging
 
 settings = get_settings()
 
@@ -108,9 +110,17 @@ async def root() -> dict:
 
 
 # Include routers
-from app.routers import auth, prediction, scan, youtube, dashboard
+from app.routers import auth, prediction, scan, youtube, dashboard, validation, model
 app.include_router(auth.router)
 app.include_router(prediction.router)
 app.include_router(scan.router)
 app.include_router(youtube.router)
 app.include_router(dashboard.router)
+app.include_router(validation.router)
+app.include_router(model.router)
+
+# Setup Prometheus metrics
+setup_metrics(app)
+
+# Setup structured JSON logging
+setup_request_logging(app, log_level="INFO" if not settings.debug else "DEBUG")

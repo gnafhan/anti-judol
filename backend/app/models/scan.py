@@ -46,6 +46,7 @@ class Scan(Base):
     video_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
     video_thumbnail: Mapped[str | None] = mapped_column(String(500), nullable=True)
     channel_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_own_video: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
     # Scan statistics (Requirement 3.5)
     total_comments: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

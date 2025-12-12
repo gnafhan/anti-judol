@@ -1,0 +1,105 @@
+# Implementation Plan
+
+- [x] 1. Set up monitoring configuration files
+  - [x] 1.1 Create monitoring directory structure
+    - Create `monitoring/prometheus/`, `monitoring/grafana/`, `monitoring/loki/`, `monitoring/promtail/` directories
+    - _Requirements: 5.1_
+  - [x] 1.2 Create Prometheus configuration
+    - Create `monitoring/prometheus/prometheus.yml` with scrape configs for backend, postgres-exporter, redis-exporter
+    - Configure 15s scrape interval and 15d retention
+    - _Requirements: 1.3, 1.4_
+  - [x] 1.3 Create Loki configuration
+    - Create `monitoring/loki/loki-config.yml` with local storage and BoltDB shipper
+    - _Requirements: 4.1_
+  - [x] 1.4 Create Promtail configuration
+    - Create `monitoring/promtail/promtail-config.yml` to scrape Docker container logs
+    - Configure labels for service_name and container_name
+    - _Requirements: 4.2_
+
+- [x] 2. Create Grafana provisioning and dashboards
+  - [x] 2.1 Create Grafana datasource provisioning
+    - Create `monitoring/grafana/provisioning/datasources/datasources.yml`
+    - Configure Prometheus and Loki as datasources
+    - _Requirements: 3.1, 4.3_
+  - [x] 2.2 Create Grafana dashboard provisioning config
+    - Create `monitoring/grafana/provisioning/dashboards/dashboards.yml`
+    - _Requirements: 3.2, 3.3, 3.4_
+  - [x] 2.3 Create Backend API dashboard
+    - Create `monitoring/grafana/dashboards/backend-api.json`
+    - Include panels for request rate, latency percentiles, error rate, active connections
+    - _Requirements: 3.2_
+  - [x] 2.4 Create Infrastructure dashboard
+    - Create `monitoring/grafana/dashboards/infrastructure.json`
+    - Include panels for PostgreSQL connections, query stats, Redis memory, clients
+    - _Requirements: 3.3_
+  - [x] 2.5 Create Celery dashboard
+    - Create `monitoring/grafana/dashboards/celery.json`
+    - Include panels for task counts, success/failure rates, queue depths
+    - _Requirements: 3.4_
+
+- [-] 3. Integrate Prometheus metrics into FastAPI backend
+  - [x] 3.1 Add prometheus-fastapi-instrumentator to requirements.txt
+    - Add `prometheus-fastapi-instrumentator` and `python-json-logger` dependencies
+    - _Requirements: 2.1_
+  - [x] 3.2 Create metrics module and integrate with FastAPI
+    - Create `backend/app/metrics.py` with Prometheus instrumentator setup
+    - Expose /metrics endpoint with request count, latency histogram, status codes
+    - Add labels for endpoint path and HTTP method
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 3.3 Write property test for metrics recording
+    - **Property 1: Request Metrics Recording**
+    - **Validates: Requirements 2.2, 2.3**
+  - [x] 3.4 Create structured JSON logging middleware
+    - Create `backend/app/logging_config.py` with JSON formatter
+    - Include request_id, timestamp, method, path, status_code in logs
+    - _Requirements: 4.4_
+  - [x] 3.5 Write property test for structured logging
+    - **Property 2: Structured Log Completeness**
+    - **Validates: Requirements 4.4**
+
+- [x] 4. Update docker-compose.yml with monitoring services
+  - [x] 4.1 Add Prometheus service
+    - Configure prometheus container with volume mounts and health check
+    - Expose port 9090 (configurable via PROMETHEUS_PORT)
+    - Connect to gambling_detector_network
+    - _Requirements: 1.1, 5.1, 5.2, 5.3_
+  - [x] 4.2 Add Grafana service
+    - Configure grafana container with provisioning volumes and health check
+    - Expose port 3001 (configurable via GRAFANA_PORT)
+    - Configure admin credentials via environment variables
+    - _Requirements: 1.2, 5.1, 5.2, 5.3_
+  - [x] 4.3 Add Loki service
+    - Configure loki container with config volume and health check
+    - _Requirements: 4.1, 5.1, 5.2_
+  - [x] 4.4 Add Promtail service
+    - Configure promtail container with Docker socket mount
+    - Depend on Loki service
+    - _Requirements: 4.1, 4.2, 5.1, 5.2_
+  - [x] 4.5 Add Postgres Exporter service
+    - Configure postgres-exporter container with database connection
+    - Expose metrics on port 9187
+    - _Requirements: 6.1, 6.3_
+  - [x] 4.6 Add Redis Exporter service
+    - Configure redis-exporter container with Redis connection
+    - Expose metrics on port 9121
+    - _Requirements: 6.2, 6.4_
+  - [x] 4.7 Add named volumes for monitoring persistence
+    - Add prometheus_data, grafana_data, loki_data volumes
+    - _Requirements: 5.3_
+
+- [x] 5. Checkpoint - Verify monitoring stack deployment
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Final integration and verification
+  - [x] 6.1 Update backend Dockerfile if needed
+    - Ensure metrics dependencies are installed
+    - _Requirements: 2.1_
+  - [x] 6.2 Update .env.example with monitoring environment variables
+    - Add PROMETHEUS_PORT, GRAFANA_PORT, GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD
+    - _Requirements: 1.1, 1.2_
+  - [x] 6.3 Write integration test for log forwarding
+    - **Property 3: Log Forwarding with Labels**
+    - **Validates: Requirements 4.2**
+
+- [x] 7. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

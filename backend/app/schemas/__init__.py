@@ -19,6 +19,13 @@ from .youtube import (
     VideoListResponse,
     CommentListResponse,
 )
+from .validation import (
+    ValidationSubmit,
+    BatchValidationSubmit,
+    ValidationResponse,
+    ValidationStats,
+    BatchValidationResult,
+)
 
 __all__ = [
     # User schemas
@@ -40,4 +47,10 @@ __all__ = [
     "CommentInfo",
     "VideoListResponse",
     "CommentListResponse",
+    # Validation schemas
+    "ValidationSubmit",
+    "BatchValidationSubmit",
+    "ValidationResponse",
+    "ValidationStats",
+    "BatchValidationResult",
 ]

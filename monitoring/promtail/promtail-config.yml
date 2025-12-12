@@ -1,0 +1,115 @@
+# Promtail configuration for Gambling Comment Detector
+# Requirements: 4.2
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+      # Parse Docker JSON log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            timestamp: time
+            attrs: attrs
+
+      # Extract container labels
+      - json:
+          expressions:
+            tag: tag
+          source: attrs
+
+      # Parse the log output for JSON structured logs from backend
+      - match:
+          selector: '{job="containerlogs"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  request_id: request_id
+                  method: method
+                  path: path
+                  status_code: status_code
+                source: output
+
+      # Set labels from extracted values
+      - labels:
+          stream:
+          level:
+
+      # Use the extracted output as the log line
+      - output:
+          source: output
+
+      # Set timestamp from Docker log
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+  # Alternative: Docker service discovery for container logs
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Keep only containers from our compose project
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container_name'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service_name'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: 'project'
+      # Set the log path
+      - source_labels: ['__meta_docker_container_id']
+        target_label: '__path__'
+        replacement: '/var/lib/docker/containers/$1/$1-json.log'
+
+    pipeline_stages:
+      # Parse Docker JSON log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            timestamp: time
+
+      # Try to parse JSON logs from backend service
+      - match:
+          selector: '{service_name="backend"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  request_id: request_id
+                  method: method
+                  path: path
+                  status_code: status_code
+                source: output
+            - labels:
+                level:
+
+      # Use the extracted output as the log line
+      - output:
+          source: output
+
+      # Set timestamp from Docker log
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano

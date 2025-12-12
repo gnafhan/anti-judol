@@ -1,0 +1,216 @@
+# Implementation Plan
+
+- [x] 1. Set up database models and migrations
+  - [x] 1.1 Create ValidationFeedback SQLAlchemy model
+    - Add model in `backend/app/models/validation.py`
+    - Include all fields: id, scan_result_id, user_id, comment_text, original_prediction, original_confidence, corrected_label, is_correction, validated_at, used_in_training, model_version_id
+    - Add indexes for user_id, used_in_training, is_correction
+    - _Requirements: 9.1, 9.2_
+  - [x] 1.2 Create ModelVersion SQLAlchemy model
+    - Add model in `backend/app/models/model_version.py`
+    - Include fields: id, version, file_path, training_samples, validation_samples, accuracy, precision_score, recall_score, f1_score, is_active, timestamps
+    - Add index for is_active
+    - _Requirements: 5.3_
+  - [x] 1.3 Create Alembic migration for new tables
+    - Generate migration with `alembic revision --autogenerate`
+    - Verify foreign key constraints and cascade deletes
+    - _Requirements: 9.1_
+  - [x] 1.4 Write property test for validation data integrity
+    - **Property 12: Validation Data Integrity**
+    - **Validates: Requirements 9.1, 9.2**
+
+- [x] 2. Implement Validation Service
+  - [x] 2.1 Create Pydantic schemas for validation
+    - Add schemas in `backend/app/schemas/validation.py`
+    - Include ValidationSubmit, BatchValidationSubmit, ValidationResponse, ValidationStats
+    - _Requirements: 1.2, 2.2_
+  - [x] 2.2 Implement ValidationService class
+    - Create `backend/app/services/validation_service.py`
+    - Implement submit_validation, batch_validate, undo_validation, get_validation_stats, check_retraining_threshold
+    - _Requirements: 1.2, 2.3, 7.2, 4.2, 5.1_
+  - [x] 2.3 Write property test for validation state consistency
+    - **Property 1: Validation State Consistency**
+    - **Validates: Requirements 1.1, 1.2**
+  - [x] 2.4 Write property test for batch validation completeness
+    - **Property 4: Batch Validation Completeness**
+    - **Validates: Requirements 2.3**
+  - [x] 2.5 Write property test for validation statistics accuracy
+    - **Property 5: Validation Statistics Accuracy**
+    - **Validates: Requirements 4.2**
+
+- [x] 3. Implement Validation API Router
+  - [x] 3.1 Create validation router endpoints
+    - Create `backend/app/routers/validation.py`
+    - Implement POST /submit, POST /batch, DELETE /{id}, GET /stats, GET /progress
+    - Add authentication middleware
+    - _Requirements: 1.2, 2.2, 7.2, 4.2_
+  - [x] 3.2 Register router in main app
+    - Update `backend/app/main.py` to include validation router
+    - _Requirements: 1.2_
+  - [x] 3.3 Write property test for undo reversion
+    - **Property 10: Undo Reversion**
+    - **Validates: Requirements 7.2**
+  - [x] 3.4 Write property test for undo window persistence
+    - **Property 11: Undo Window Persistence**
+    - **Validates: Requirements 7.3**
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Implement Retraining Service
+  - [x] 5.1 Create RetrainingService class
+    - Create `backend/app/services/retraining_service.py`
+    - Implement get_training_data (combine df_all.csv + validation_feedback)
+    - Implement build_pipeline with hybrid_all_features + LogisticRegression
+    - Implement train_and_evaluate, deploy_model, rollback_model
+    - _Requirements: 5.1, 5.3, 6.2, 6.3_
+  - [x] 5.2 Add retraining configuration
+    - Add environment variables for threshold, hyperparameters
+    - Update `backend/app/config.py` with retraining settings
+    - _Requirements: 6.1, 6.2_
+  - [x] 5.3 Write property test for training data combination
+    - **Property 13: Training Data Combination**
+    - **Validates: Requirements 6.3, 9.3**
+  - [x] 5.4 Write property test for retraining threshold trigger
+    - **Property 6: Retraining Threshold Trigger**
+    - **Validates: Requirements 5.1**
+
+- [x] 6. Implement Celery Retraining Task
+  - [x] 6.1 Create retraining Celery task
+    - Add task in `backend/app/workers/tasks.py`
+    - Implement async retraining with progress tracking
+    - Handle success/failure scenarios
+    - _Requirements: 5.1, 5.2, 5.3, 5.4_
+  - [x] 6.2 Update PredictionService for model hot-swap
+    - Modify `backend/app/services/prediction_service.py`
+    - Add method to reload model without restart
+    - Ensure thread-safe model swapping
+    - _Requirements: 5.2, 5.3_
+  - [x] 6.3 Write property test for model continuity during retraining
+    - **Property 7: Model Continuity During Retraining**
+    - **Validates: Requirements 5.2**
+  - [x] 6.4 Write property test for model swap on success
+    - **Property 8: Model Swap on Success**
+    - **Validates: Requirements 5.3**
+  - [x] 6.5 Write property test for model preservation on failure
+    - **Property 9: Model Preservation on Failure**
+    - **Validates: Requirements 5.4**
+
+- [x] 7. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 8. Implement Model Management API (Admin)
+  - [x] 8.1 Create model management router
+    - Create `backend/app/routers/model.py`
+    - Implement GET /versions, GET /current, POST /retrain, POST /rollback/{version}, GET /metrics
+    - Add admin-only authentication
+    - _Requirements: 5.3, 10.1_
+  - [x] 8.2 Register model router in main app
+    - Update `backend/app/main.py`
+    - _Requirements: 5.3_
+
+- [x] 9. Implement Frontend Validation Components
+  - [x] 9.1 Create ValidationToggle component
+    - Create `frontend/src/components/validation/ValidationToggle.tsx`
+    - Implement confirm/correct toggle with visual feedback
+    - Add subtle, non-intrusive styling
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 9.2 Create BatchValidationModal component
+    - Create `frontend/src/components/validation/BatchValidationModal.tsx`
+    - Implement bulk action options (confirm all, mark gambling, mark clean)
+    - Add progress indicator for batch operations
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 9.3 Create ValidationProgressBar component
+    - Create `frontend/src/components/validation/ValidationProgressBar.tsx`
+    - Show validated vs unvalidated counts
+    - Display progress toward retraining threshold
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 9.4 Write property test for threshold progress notification
+    - **Property 15: Threshold Progress Notification**
+    - **Validates: Requirements 4.3**
+
+- [x] 10. Implement useValidation Hook
+  - [x] 10.1 Create useValidation custom hook
+    - Create `frontend/src/hooks/useValidation.ts`
+    - Implement submitValidation, batchValidate, undoValidation
+    - Manage validation state and recent validation for undo
+    - _Requirements: 1.2, 2.3, 7.1, 7.2_
+  - [x] 10.2 Add validation API functions
+    - Update `frontend/src/lib/api.ts`
+    - Add validation.submit, validation.batch, validation.undo, validation.stats
+    - _Requirements: 1.2, 2.2_
+
+- [x] 11. Implement Toast Notifications with Undo
+  - [x] 11.1 Create ValidationToast component
+    - Create `frontend/src/components/validation/ValidationToast.tsx`
+    - Show validation confirmation with undo button
+    - Auto-dismiss after 5 seconds
+    - _Requirements: 1.4, 7.1_
+  - [x] 11.2 Integrate toast with validation flow
+    - Update useValidation hook to trigger toasts
+    - Handle undo action within time window
+    - _Requirements: 7.1, 7.2, 7.3_
+
+- [x] 12. Integrate Validation into Scan Results Page
+  - [x] 12.1 Update CommentResultCard with ValidationToggle
+    - Modify `frontend/src/app/admin/scan/[scanId]/page.tsx`
+    - Add ValidationToggle to each comment card
+    - Highlight low confidence comments (< 70%)
+    - _Requirements: 1.1, 3.1_
+  - [x] 12.2 Write property test for low confidence highlighting
+    - **Property 2: Low Confidence Highlighting**
+    - **Validates: Requirements 3.1**
+  - [x] 12.3 Add batch mode toggle and selection
+    - Add batch mode button to scan results header
+    - Implement multi-select with checkboxes
+    - _Requirements: 2.1_
+  - [x] 12.4 Add low confidence filter option
+    - Add filter option to existing filter controls
+    - Filter comments with confidence < 70%
+    - _Requirements: 3.2_
+  - [x] 12.5 Write property test for filter correctness
+    - **Property 3: Filter Correctness**
+    - **Validates: Requirements 3.2**
+  - [x] 12.6 Add ValidationProgressBar to scan results
+    - Display progress bar in scan overview section
+    - Show motivational message near threshold
+    - _Requirements: 4.1, 4.3_
+
+- [x] 13. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 14. Implement Keyboard Shortcuts
+  - [x] 14.1 Add keyboard navigation to scan results
+    - Implement arrow key navigation between comments
+    - Add focus management for accessibility
+    - _Requirements: 8.2_
+  - [x] 14.2 Add validation keyboard shortcuts
+    - V for validate correct, X for mark incorrect, Enter to confirm
+    - Show keyboard shortcut help tooltip
+    - _Requirements: 8.1, 8.3_
+
+- [x] 15. Implement Model Metrics Dashboard
+  - [x] 15.1 Add model metrics to dashboard
+    - Update dashboard to show model accuracy before/after retraining
+    - Display model version information
+    - _Requirements: 10.1_
+  - [x] 15.2 Add model improvement notification
+    - Show notification when new model is deployed
+    - Display improvement percentage
+    - _Requirements: 10.2_
+  - [x] 15.3 Add validation contribution display
+    - Show user's validation contribution count
+    - Display which validations contributed to model improvements
+    - _Requirements: 10.3_
+  - [x] 15.4 Write property test for validation contribution tracking
+    - **Property 14: Validation Contribution Tracking**
+    - **Validates: Requirements 10.3**
+
+- [x] 16. Add TypeScript Types
+  - [x] 16.1 Update frontend types
+    - Update `frontend/src/lib/types.ts`
+    - Add ValidationFeedback, ValidationStats, ModelVersion, BatchValidationResult types
+    - _Requirements: Type safety_
+
+- [x] 17. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

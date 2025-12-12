@@ -9,7 +9,7 @@ const LineAreaChart = (props) => {
   const { chartData, chartOptions } = props;
 
   return (
-    // @ts-expect-error
+    // @ts-ignore - react-apexcharts types issue
     <Chart
       options={chartOptions}
       type="area"

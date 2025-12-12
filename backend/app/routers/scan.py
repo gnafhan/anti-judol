@@ -31,11 +31,9 @@ from app.schemas.scan import (
     ScanResultResponse,
 )
 from app.services.auth_service import get_current_user
+from app.workers.tasks import scan_video_comments
 
 router = APIRouter(prefix="/api/scan", tags=["scan"])
-
-# In-memory task store (temporary until Celery is implemented in Phase 4)
-_task_store: dict[str, dict[str, Any]] = {}
 
 
 @router.post("/", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
@@ -52,30 +50,25 @@ async def create_scan(
     
     Requirements: 3.1, 9.1
     """
-    # Generate task_id for the Celery task
-    # Note: Full Celery integration will be implemented in Phase 4
-    task_id = str(uuid.uuid4())
-    
     # Create scan record with pending status (Requirement 3.1)
     scan = Scan(
         user_id=current_user.id,
         video_id=request.video_id,
         status="pending",
-        task_id=task_id,
+        is_own_video=request.is_own_video,
     )
     
     db.add(scan)
     await db.commit()
     await db.refresh(scan)
     
-    # Store task info (temporary until Celery is implemented)
-    _task_store[task_id] = {
-        "scan_id": str(scan.id),
-        "status": "pending",
-    }
+    # Queue Celery task for processing
+    task = scan_video_comments.delay(str(scan.id), request.video_id, str(current_user.id))
     
-    # TODO: Queue Celery task in Phase 4
-    # scan_video_comments.delay(str(scan.id), request.video_id, str(current_user.id))
+    # Update scan with task_id
+    scan.task_id = task.id
+    await db.commit()
+    await db.refresh(scan)
     
     return ScanResponse(
         id=scan.id,
@@ -285,7 +278,3 @@ async def delete_scan(
     # Delete scan (cascade will delete results)
     await db.delete(scan)
     await db.commit()
-    
-    # Clean up task store if exists
-    if scan.task_id and scan.task_id in _task_store:
-        del _task_store[scan.task_id]

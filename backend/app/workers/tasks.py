@@ -303,6 +303,185 @@ def batch_predict(self, texts: list[str]) -> list[dict]:
         raise self.retry(exc=e)
 
 
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=300,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+)
+def retrain_model(
+    self,
+    triggered_by: str = "automatic",
+) -> dict:
+    """
+    Async task to retrain the ML model with validated feedback data.
+    
+    This task:
+    1. Checks if sufficient validation data is available
+    2. Combines original dataset with validation feedback
+    3. Trains a new model with hybrid_all_features + LogisticRegression
+    4. Evaluates the model performance
+    5. Deploys the new model if training succeeds
+    6. Handles errors with retry logic
+    
+    The current model continues serving predictions during retraining.
+    
+    Args:
+        triggered_by: Who/what triggered the retraining ("automatic" or "manual")
+        
+    Returns:
+        Dictionary with retraining results summary
+        
+    Requirements: 5.1, 5.2, 5.3, 5.4
+    """
+    import asyncio
+    from app.models.model_version import ModelVersion
+    from app.models.validation import ValidationFeedback
+    from app.services.retraining_service import (
+        RetrainingService,
+        RetrainingError,
+        InsufficientDataError,
+        ModelDeploymentError,
+    )
+    from app.database import async_session_maker
+    
+    task_id = self.request.id
+    celery_task = self  # Store reference for use in async function
+    logger.info(f"Retraining task {task_id} started (triggered_by: {triggered_by})")
+    
+    def update_progress(stage: str, progress: int, message: str):
+        """Helper to update task progress state."""
+        logger.info(f"Retraining task {task_id}: Updating progress - stage={stage}, progress={progress}%")
+        celery_task.update_state(
+            state='PROGRESS',
+            meta={
+                'stage': stage,
+                'progress': progress,
+                'message': message,
+            }
+        )
+    
+    # Update task state to show progress
+    update_progress('initializing', 0, 'Initializing retraining task...')
+    
+    async def run_retraining():
+        """Run the async retraining process."""
+        async with async_session_maker() as db:
+            try:
+                retraining_service = RetrainingService(db)
+                
+                # Stage 1: Check validation count
+                update_progress('checking_data', 10, 'Checking validation data availability...')
+                
+                unused_count = await retraining_service.get_unused_validation_count()
+                logger.info(f"Retraining task {task_id}: Found {unused_count} unused validations")
+                
+                # Note: We skip threshold check for manual retraining
+                # The threshold is only for automatic retraining
+                
+                # Stage 2: Get training data
+                update_progress('loading_data', 20, 'Loading and combining training data...')
+                
+                training_data = await retraining_service.get_training_data()
+                logger.info(
+                    f"Retraining task {task_id}: Loaded {len(training_data)} training samples"
+                )
+                
+                # Stage 3: Train model
+                update_progress('training', 40, 'Training new model...')
+                
+                model, metrics = await retraining_service.train_and_evaluate(training_data)
+                logger.info(
+                    f"Retraining task {task_id}: Training complete - "
+                    f"accuracy={metrics.accuracy:.4f}, f1={metrics.f1:.4f}"
+                )
+                
+                # Update progress after training
+                update_progress('training', 70, 'Model training complete...')
+                
+                # Stage 4: Deploy model
+                update_progress('deploying', 80, 'Deploying new model...')
+                
+                model_version = await retraining_service.deploy_model(model, metrics)
+                logger.info(
+                    f"Retraining task {task_id}: Model deployed - version={model_version.version}"
+                )
+                
+                # Stage 5: Notify prediction service to reload model
+                update_progress('finalizing', 95, 'Finalizing deployment...')
+                
+                # Trigger model hot-swap in prediction service
+                try:
+                    from app.services.prediction_service import PredictionService
+                    PredictionService.reload_model()
+                except Exception as e:
+                    logger.warning(f"Failed to hot-swap model: {e}")
+                
+                logger.info(f"Retraining task {task_id}: Completed successfully")
+                
+                return {
+                    'status': 'success',
+                    'task_id': task_id,
+                    'model_version': model_version.version,
+                    'model_version_id': str(model_version.id),
+                    'metrics': metrics.to_dict(),
+                    'triggered_by': triggered_by,
+                }
+                
+            except InsufficientDataError as e:
+                logger.warning(f"Retraining task {task_id}: {e}")
+                return {
+                    'status': 'skipped',
+                    'reason': 'insufficient_data',
+                    'message': str(e),
+                    'task_id': task_id,
+                }
+                
+            except ModelDeploymentError as e:
+                logger.error(f"Retraining task {task_id}: Deployment failed - {e}")
+                # Don't retry deployment errors - current model is still active
+                return {
+                    'status': 'failed',
+                    'reason': 'deployment_error',
+                    'message': str(e),
+                    'task_id': task_id,
+                }
+                
+            except RetrainingError as e:
+                logger.error(f"Retraining task {task_id}: Retraining error - {e}")
+                raise  # Will trigger retry
+                
+            except Exception as e:
+                logger.exception(f"Retraining task {task_id}: Unexpected error - {e}")
+                raise  # Will trigger retry
+    
+    # Run the async function
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            result = loop.run_until_complete(run_retraining())
+            return result
+        finally:
+            loop.close()
+    except Exception as e:
+        logger.exception(f"Retraining task {task_id} failed: {e}")
+        # Update state to failed
+        celery_task.update_state(
+            state='FAILURE',
+            meta={
+                'stage': 'failed',
+                'progress': 0,
+                'message': str(e),
+                'exc_type': type(e).__name__,
+            }
+        )
+        raise
+
+
 @shared_task
 def cleanup_old_results(retention_days: int = 30) -> dict:
     """

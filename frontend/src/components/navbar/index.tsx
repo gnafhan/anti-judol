@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import Dropdown from 'components/dropdown';
 import { FiAlignJustify } from 'react-icons/fi';
@@ -6,14 +7,13 @@ import navbarimage from '/public/img/layout/Navbar.png';
 import { BsArrowBarUp } from 'react-icons/bs';
 import { FiSearch } from 'react-icons/fi';
 import { RiMoonFill, RiSunFill } from 'react-icons/ri';
-// import { RiMoonFill, RiSunFill } from 'react-icons/ri';
-// import Configurator from './Configurator';
 import {
   IoMdNotificationsOutline,
   IoMdInformationCircleOutline,
 } from 'react-icons/io';
 import avatar from '/public/img/avatars/avatar4.png';
 import Image from 'next/image';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = (props: {
   onOpenSidenav: () => void;
@@ -22,9 +22,14 @@ const Navbar = (props: {
   [x: string]: any;
 }) => {
   const { onOpenSidenav, brandText, mini, hovered } = props;
+  const { user, logout } = useAuth();
   const [darkmode, setDarkmode] = React.useState(
-    document.body.classList.contains('dark'),
+    typeof document !== 'undefined' && document.body.classList.contains('dark'),
   );
+
+  const handleLogout = async () => {
+    await logout();
+  };
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
       <div className="ml-[6px]">
@@ -185,45 +190,50 @@ const Navbar = (props: {
         {/* Profile & Dropdown */}
         <Dropdown
           button={
-            <Image
-              width="2"
-              height="20"
-              className="h-10 w-10 rounded-full"
-              src={avatar}
-              alt="Elon Musk"
-            />
+            user?.avatar_url ? (
+              <img
+                className="h-10 w-10 rounded-full cursor-pointer"
+                src={user.avatar_url}
+                alt={user.name || 'User'}
+              />
+            ) : (
+              <Image
+                width="2"
+                height="20"
+                className="h-10 w-10 rounded-full cursor-pointer"
+                src={avatar}
+                alt="User"
+              />
+            )
           }
           classNames={'py-2 top-8 -left-[180px] w-max'}
         >
-          <div className="flex h-48 w-56 flex-col justify-start rounded-[20px] bg-white bg-cover bg-no-repeat shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
+          <div className="flex h-40 w-56 flex-col justify-start rounded-[20px] bg-white bg-cover bg-no-repeat shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
             <div className="ml-4 mt-3">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-navy-700 dark:text-white">
-                  👋 Hey, Adela
-                </p>{' '}
+                  👋 Hey, {user?.name || 'User'}
+                </p>
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {user?.email}
+              </p>
             </div>
-            <div className="mt-3 h-px w-full bg-gray-200 dark:bg-white/20 " />
+            <div className="mt-3 h-px w-full bg-gray-200 dark:bg-white/20" />
 
             <div className="ml-4 mt-3 flex flex-col">
-              <a
-                href=" "
+              <NavLink
+                href="/admin/profile"
                 className="text-sm text-gray-800 dark:text-white hover:dark:text-white"
               >
                 Profile Settings
-              </a>
-              <a
-                href=" "
-                className="mt-3 text-sm text-gray-800 dark:text-white hover:dark:text-white"
-              >
-                Newsletter Settings
-              </a>
-              <a
-                href=" "
-                className="mt-3 text-sm font-medium text-red-500 hover:text-red-500"
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="mt-3 text-left text-sm font-medium text-red-500 hover:text-red-600"
               >
                 Log Out
-              </a>
+              </button>
             </div>
           </div>
         </Dropdown>

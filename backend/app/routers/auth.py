@@ -65,20 +65,22 @@ async def google_callback(
     state: str | None = Query(None, description="State parameter for CSRF protection"),
     error: str | None = Query(None, description="Error from Google OAuth"),
     db: AsyncSession = Depends(get_db),
-) -> TokenResponse:
+) -> RedirectResponse:
     """
     Handle Google OAuth callback.
     
     Exchanges authorization code for tokens, creates/updates user in database,
-    and returns JWT token.
+    and redirects to frontend with JWT token.
     
     Requirements: 1.2, 1.3, 1.4
     """
+    frontend_callback_url = f"{settings.frontend_url}/auth/callback"
+    
     # Handle OAuth errors (Requirement 1.7)
     if error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"OAuth error: {error}",
+        return RedirectResponse(
+            url=f"{frontend_callback_url}?error={error}",
+            status_code=status.HTTP_302_FOUND,
         )
     
     auth_service = AuthService()
@@ -151,31 +153,27 @@ async def google_callback(
             }
         )
         
-        return TokenResponse(
-            access_token=jwt_token,
-            token_type="bearer",
-            expires_in=settings.jwt_access_token_expire_minutes * 60,
-            user=UserResponse(
-                id=user.id,
-                google_id=user.google_id,
-                email=user.email,
-                name=user.name,
-                avatar_url=user.avatar_url,
-                created_at=user.created_at,
-            ),
+        # Redirect to frontend with JWT token (Requirement 1.4)
+        redirect_url = f"{frontend_callback_url}?access_token={jwt_token}"
+        return RedirectResponse(
+            url=redirect_url,
+            status_code=status.HTTP_302_FOUND,
         )
         
     except AuthJWTError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+        return RedirectResponse(
+            url=f"{frontend_callback_url}?error={str(e)}",
+            status_code=status.HTTP_302_FOUND,
         )
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        return RedirectResponse(
+            url=f"{frontend_callback_url}?error={e.detail}",
+            status_code=status.HTTP_302_FOUND,
+        )
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Authentication failed: {str(e)}",
+        return RedirectResponse(
+            url=f"{frontend_callback_url}?error=Authentication+failed",
+            status_code=status.HTTP_302_FOUND,
         )
 
 

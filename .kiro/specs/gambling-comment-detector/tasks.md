@@ -315,80 +315,80 @@
     - make dev, make test, make lint, make migrate
     - _Requirements: Development workflow_
 
-- [ ] 21. Checkpoint - Ensure all tests pass
+- [x] 21. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 6: Frontend Integration
 
-- [ ] 22. Set up frontend API client
-  - [ ] 22.1 Create API client utilities
+- [x] 22. Set up frontend API client
+  - [x] 22.1 Create API client utilities
     - Create lib/api.ts with axios/fetch configuration
     - Set up authentication header injection
     - Handle token refresh on 401
     - _Requirements: 11.1, 11.2_
-  - [ ] 22.2 Create TypeScript types matching backend schemas
+  - [x] 22.2 Create TypeScript types matching backend schemas
     - Define User, Scan, ScanResult, Video, Comment types
     - _Requirements: Type safety_
 
-- [ ] 23. Implement authentication pages
-  - [ ] 23.1 Create login page
+- [x] 23. Implement authentication pages
+  - [x] 23.1 Create login page
     - Add Google OAuth login button
     - Handle OAuth callback
     - Store JWT in localStorage/cookies
     - _Requirements: 1.1, 1.2, 1.4_
-  - [ ] 23.2 Create auth context/provider
+  - [x] 23.2 Create auth context/provider
     - Manage authentication state
     - Provide logout functionality
     - _Requirements: 1.6_
 
-- [ ] 24. Implement dashboard page
-  - [ ] 24.1 Create dashboard layout with Horizon UI components
+- [x] 24. Implement dashboard page
+  - [x] 24.1 Create dashboard layout with Horizon UI components
     - Display stats cards (total scans, comments, detection rate)
     - Add chart component for scan history
     - _Requirements: 7.1, 7.2_
-  - [ ] 24.2 Integrate with dashboard API endpoints
+  - [x] 24.2 Integrate with dashboard API endpoints
     - Fetch stats and chart data
     - Handle loading and error states
     - _Requirements: 7.1, 7.2_
 
-- [ ] 25. Implement my-videos pages
-  - [ ] 25.1 Create my-videos list page
+- [x] 25. Implement my-videos pages
+  - [x] 25.1 Create my-videos list page
     - Display user's YouTube videos
     - Add pagination
     - _Requirements: 4.1, 4.4_
-  - [ ] 25.2 Create my-videos detail page
+  - [x] 25.2 Create my-videos detail page
     - Show video info and comments
     - Add scan button
     - Display scan results with delete options
     - _Requirements: 4.2, 4.3, 6.1, 6.2_
 
-- [ ] 26. Implement browse pages
-  - [ ] 26.1 Create browse/search page
+- [x] 26. Implement browse pages
+  - [x] 26.1 Create browse/search page
     - Add search input
     - Display search results
     - _Requirements: 5.1, 5.2_
-  - [ ] 26.2 Create browse video detail page
+  - [x] 26.2 Create browse video detail page
     - Show video info and comments
     - Add scan button (no delete for public videos)
     - _Requirements: 5.3_
 
-- [ ] 27. Implement scan pages
-  - [ ] 27.1 Create scan progress component
+- [x] 27. Implement scan pages
+  - [x] 27.1 Create scan progress component
     - Poll scan status
     - Show progress indicator
     - _Requirements: 3.7, 9.2_
-  - [ ] 27.2 Create scan results page
+  - [x] 27.2 Create scan results page
     - Display gambling vs clean comments
     - Show confidence scores
     - Add export buttons
     - _Requirements: 7.4, 8.1, 8.2_
 
-- [ ] 28. Implement history page
-  - [ ] 28.1 Create scan history list
+- [x] 28. Implement history page
+  - [x] 28.1 Create scan history list
     - Display paginated scan history
     - Show summary for each scan
     - Link to scan details
     - _Requirements: 7.3_
 
-- [ ] 29. Final Checkpoint - Ensure all tests pass
+- [x] 29. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.

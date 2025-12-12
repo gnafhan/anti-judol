@@ -13,7 +13,7 @@ from alembic import context
 
 # Import the application's Base and models
 from app.database import Base
-from app.models import User, Scan, ScanResult  # noqa: F401 - Import models for autogenerate
+from app.models import User, Scan, ScanResult, ModelVersion, ValidationFeedback  # noqa: F401 - Import models for autogenerate
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # Application
@@ -49,6 +50,9 @@ class Settings(BaseSettings):
     # YouTube API
     youtube_api_key: str = ""
 
+    # Frontend URL for OAuth redirect
+    frontend_url: str = "http://localhost:3000"
+
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
@@ -62,6 +66,46 @@ class Settings(BaseSettings):
 
     # ML Model
     ml_model_path: str = "ml/model_pipeline.joblib"
+
+    # Retraining Configuration (Requirements 6.1, 6.2)
+    retraining_threshold: int = 100  # Minimum validations before retraining
+    retraining_test_size: float = 0.2  # Hold out for evaluation
+    min_training_samples: int = 100  # Minimum samples required for training
+    
+    # ML Hyperparameters (Requirements 6.2)
+    # Logistic Regression classifier parameters
+    classifier_c: float = 10.0
+    classifier_solver: str = "lbfgs"
+    
+    # TF-IDF vectorizer parameters (stored as comma-separated for env vars)
+    word_tfidf_ngram_min: int = 1
+    word_tfidf_ngram_max: int = 2
+    char_tfidf_ngram_min: int = 2
+    char_tfidf_ngram_max: int = 4
+    
+    # Model storage paths
+    model_dir: str = "ml/models"
+    original_dataset_path: str = "ml/df_all.csv"
+    
+    # Admin Configuration
+    admin_emails: str = ""  # Comma-separated list of admin emails
+    
+    @property
+    def admin_email_list(self) -> list[str]:
+        """Get list of admin emails."""
+        if not self.admin_emails:
+            return []
+        return [email.strip() for email in self.admin_emails.split(",") if email.strip()]
+    
+    @property
+    def word_tfidf_ngram_range(self) -> tuple[int, int]:
+        """Get word TF-IDF ngram range as tuple."""
+        return (self.word_tfidf_ngram_min, self.word_tfidf_ngram_max)
+    
+    @property
+    def char_tfidf_ngram_range(self) -> tuple[int, int]:
+        """Get char TF-IDF ngram range as tuple."""
+        return (self.char_tfidf_ngram_min, self.char_tfidf_ngram_max)
 
 
 @lru_cache

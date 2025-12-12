@@ -6,6 +6,7 @@ python-multipart==0.0.18
 # Database
 sqlalchemy[asyncio]==2.0.36
 asyncpg==0.30.0
+psycopg2-binary==2.9.10
 alembic==1.14.0
 
 # Redis and Celery
@@ -27,6 +28,7 @@ google-auth-httplib2==0.2.0
 # ML
 scikit-learn==1.6.1
 joblib==1.4.2
+pandas==2.2.3
 
 # Pydantic
 pydantic==2.10.3
@@ -43,6 +45,10 @@ pytest-asyncio==0.24.0
 pytest-cov==6.0.0
 hypothesis==6.122.1
 aiosqlite==0.20.0
+
+# Monitoring
+prometheus-fastapi-instrumentator==7.0.0
+python-json-logger==2.0.7
 
 # Utilities
 python-dotenv==1.0.1
