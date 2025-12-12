@@ -16,35 +16,15 @@ const nextConfig = {
   },
   // Enable standalone output for Docker
   output: 'standalone',
-  // Webpack configuration for path aliases
+  // Webpack configuration for path aliases - must match tsconfig baseUrl: "src"
   webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-      'lib': path.resolve(__dirname, 'src/lib'),
-      'components': path.resolve(__dirname, 'src/components'),
-      'hooks': path.resolve(__dirname, 'src/hooks'),
-      'utils': path.resolve(__dirname, 'src/utils'),
-      'types': path.resolve(__dirname, 'src/types'),
-      'variables': path.resolve(__dirname, 'src/variables'),
-      'styles': path.resolve(__dirname, 'src/styles'),
-      'contexts': path.resolve(__dirname, 'src/contexts'),
-    };
+    // Add src directory to module resolution
+    config.resolve.modules = [
+      path.resolve(__dirname, 'src'),
+      'node_modules',
+      ...(config.resolve.modules || []),
+    ];
     return config;
-  },
-  // Turbopack configuration (for dev mode)
-  turbopack: {
-    resolveAlias: {
-      '@': './src',
-      'lib': './src/lib',
-      'components': './src/components',
-      'hooks': './src/hooks',
-      'utils': './src/utils',
-      'types': './src/types',
-      'variables': './src/variables',
-      'styles': './src/styles',
-      'contexts': './src/contexts',
-    },
   },
 };
 
